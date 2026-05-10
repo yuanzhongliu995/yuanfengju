@@ -8,445 +8,446 @@
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script>
     tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#1E88E5',
-            secondary: '#27AE60',
-            light: '#F0F4F8',
-            dark: '#1E293B',
-            success: '#27AE60',
-            warning: '#FF7D00',
-            danger: '#F53F3F',
-          },
-          fontFamily: {
-            inter: ['Inter', 'system-ui', 'sans-serif'],
-          },
-        }
-      }
+      theme: { extend: { colors: { primary: '#1E88E5', secondary: '#27AE60', light: '#F0F4F8', dark: '#1E293B', success: '#27AE60', warning: '#FF7D00', danger: '#F53F3F', pending: '#9333EA', reviewing: '#F59E0B' } } }
     }
   </script>
   <style type="text/tailwindcss">
     @layer utilities {
-      .btn-primary {
-        @apply bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-all shadow-md hover:shadow-lg;
-      }
-      .btn-outline {
-        @apply border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary/10 transition-all;
-      }
-      .card-hover {
-        @apply hover:shadow-lg hover:-translate-y-1 transition-all duration-300;
-      }
+      .btn-primary { @apply bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-all shadow-md; }
+      .btn-outline { @apply border border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary/10 transition-all; }
     }
   </style>
 </head>
-<body class="font-inter bg-gray-50 text-dark">
+<body class="font-sans bg-gray-50 text-dark">
 
-<!-- 导航栏 - 无LOGO -->
-<header class="bg-white shadow-sm sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white text-xl font-bold">FJ</div>
-        <h1 class="text-xl font-bold text-primary">蜂聚签约中心</h1>
+<!-- 登录 -->
+<div id="loginModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+    <h3 class="text-2xl font-bold text-center mb-6">系统登录</h3>
+    <form id="loginForm">
+      <div class="mb-4"><label class="block text-gray-700 text-sm mb-2">账号 *</label><input type="text" id="loginAccount" class="w-full border border-gray-300 rounded-lg px-4 py-2" required></div>
+      <div class="mb-6"><label class="block text-gray-700 text-sm mb-2">密码 *</label><input type="password" id="loginPwd" class="w-full border border-gray-300 rounded-lg px-4 py-2" required></div>
+      <div id="loginError" class="text-danger text-sm mb-4 hidden">账号或密码错误</div>
+      <button type="submit" class="btn-primary w-full">登录系统</button>
+    </form>
+  </div>
+</div>
+
+<!-- 添加用户弹窗 (仅袁中流可见) -->
+<div id="addUserModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+    <h3 class="text-2xl font-bold text-center mb-6">添加普通账号</h3>
+    <form id="addUserForm">
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm mb-2">用户姓名 *</label>
+        <input type="text" id="newUserName" class="w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="例如：周琴" required>
       </div>
-      <nav class="hidden md:flex items-center gap-6">
-        <a href="#home" class="nav-link text-gray-600 hover:text-primary">首页</a>
-        <a href="#products" class="nav-link text-gray-600 hover:text-primary">贷款产品</a>
-        <a href="#apply" class="nav-link text-gray-600 hover:text-primary">立即申请</a>
-        <a href="#help" class="nav-link text-gray-600 hover:text-primary">帮助中心</a>
+      <div class="mb-6">
+        <label class="block text-gray-700 text-sm mb-2">初始密码</label>
+        <input type="text" id="newUserPwd" class="w-full border border-gray-300 rounded-lg px-4 py-2" value="123456" readonly>
+        <p class="text-xs text-gray-500 mt-1">默认统一密码：123456</p>
+      </div>
+      <div id="addUserTip" class="text-success text-sm mb-4 hidden">添加成功！</div>
+      <button type="submit" class="btn-primary w-full mb-2">确认添加</button>
+      <button type="button" onclick="closeAddUserModal()" class="btn-outline w-full">取消</button>
+    </form>
+  </div>
+</div>
+
+<!-- 导航 -->
+<header class="bg-white shadow-sm sticky top-0 z-40 hidden" id="headerMain">
+  <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-2"><div class="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center font-bold">FJ</div><h1 class="text-xl font-bold text-primary">蜂聚签约中心</h1></div>
+    <nav class="hidden md:flex items-center gap-6">
+      <a href="#home" class="text-gray-600 hover:text-primary cursor-pointer" onclick="navToHome()">首页</a>
+      <a href="#products" class="text-gray-600 hover:text-primary cursor-pointer" onclick="navToProducts()">贷款产品</a>
+      <a href="#apply" class="text-gray-600 hover:text-primary cursor-pointer" onclick="navToApply()">立即申请</a>
+      <a href="#myRecords" class="text-gray-600 hover:text-primary cursor-pointer" onclick="navToMyRecords()">申请记录</a>
+      <a href="#loanManage" class="text-gray-600 hover:text-primary cursor-pointer hidden" id="manageLink" onclick="navToLoanManage()">贷款管理</a>
+      <button id="addUserBtn" onclick="openAddUserModal()" class="text-primary hidden cursor-pointer">添加用户</button>
     </nav>
-    <button class="btn-outline text-sm">登录/注册</button>
+    <div class="flex items-center gap-4"><span id="userInfo" class="text-sm text-gray-600 hidden"></span><button id="logoutBtn" class="btn-outline text-sm hidden" onclick="logout()">退出登录</button></div>
   </div>
 </header>
 
-<!-- 首页板块 -->
-<div id="page-home">
-  <section id="home" class="bg-gradient-to-br from-primary to-secondary text-white py-16 md:py-24">
-    <div class="container mx-auto px-4 text-center">
-      <h2 class="text-3xl md:text-4xl font-bold mb-4">快速申请，轻松放款</h2>
-      <p class="text-lg md:text-xl mb-8 opacity-90">多种贷款产品，满足您的资金需求，审批快、利率低、放款快</p>
-      <div class="flex flex-col sm:flex-row justify-center gap-4">
-        <a href="#apply" class="bg-white text-primary font-medium px-8 py-3 rounded-lg hover:bg-gray-100 transition-all">立即申请</a>
-        <button class="border border-white text-white px-8 py-3 rounded-lg hover:bg-white/10 transition-all">了解更多</button>
+<!-- 首页 -->
+<div id="page-home" class="hidden">
+  <section class="bg-gradient-to-br from-primary to-secondary text-white py-16 text-center">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold mb-4">快速申请，轻松放款</h2>
+      <p class="mb-8">审批快、利率低、放款快</p>
+      <a href="#apply" class="bg-white text-primary px-8 py-3 rounded-lg inline-block" onclick="navToApply()">立即申请</a>
+    </div>
+  </section>
+
+  <!-- 我的申请记录 -->
+  <section id="myRecords" class="py-10 bg-white">
+    <div class="container mx-auto px-4 max-w-5xl">
+      <h3 class="text-xl font-bold mb-4">我的申请记录</h3>
+      <div class="overflow-x-auto border rounded-lg">
+        <table class="w-full text-sm" id="myTable">
+          <thead class="bg-gray-100"><tr><th class="border p-2">金额</th><th class="border p-2">申请时间</th><th class="border p-2">最新状态</th><th class="border p-2">操作</th></tr></thead>
+          <tbody id="myLoanList"></tbody>
+        </table>
       </div>
     </div>
   </section>
 
-  <section id="products" class="py-16 bg-light">
-    <div class="container mx-auto px-4">
-      <h3 class="text-2xl font-bold text-center mb-12">热门贷款产品</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="text-primary text-3xl mb-4"><i class="fa fa-money"></i></div>
-          <h4 class="text-xl font-semibold mb-2">个人信用贷款</h4>
-          <p class="text-gray-600 mb-4">无抵押、无担保，凭个人信用即可申请，最高可贷50万</p>
-          <ul class="text-sm text-gray-500 mb-6 space-y-1">
-            <li>• 年利率3.0%</li>
-            <li>• 审批最快当天通过</li>
-            <li>• 还款期限最长5年</li>
-          </ul>
-          <button onclick="scrollToApply()" class="btn-primary w-full">立即申请</button>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="text-primary text-3xl mb-4"><i class="fa fa-home"></i></div>
-          <h4 class="text-xl font-semibold mb-2">房产抵押贷款</h4>
-          <p class="text-gray-600 mb-4">以房产作为抵押物，额度高、利率低，适合大额资金需求</p>
-          <ul class="text-sm text-gray-500 mb-6 space-y-1">
-            <li>• 年利率3.0%</li>
-            <li>• 最高可贷房产估值的70%</li>
-            <li>• 还款期限最长20年</li>
-          </ul>
-          <button onclick="scrollToApply()" class="btn-primary w-full">立即申请</button>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-          <div class="text-primary text-3xl mb-4"><i class="fa fa-briefcase"></i></div>
-          <h4 class="text-xl font-semibold mb-2">企业经营贷款</h4>
-          <p class="text-gray-600 mb-4">专为中小企业打造，助力企业发展，灵活还款方式</p>
-          <ul class="text-sm text-gray-500 mb-6 space-y-1">
-            <li>• 年利率3.0%</li>
-            <li>• 最高可贷1000万</li>
-            <li>• 支持等额本息/先息后本</li>
-          </ul>
-          <button onclick="scrollToApply()" class="btn-primary w-full">立即申请</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="py-16 bg-white">
-    <div class="container mx-auto px-4">
-      <h3 class="text-2xl font-bold text-center mb-12">申请流程</h3>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-        <div>
-          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary text-2xl mx-auto mb-4">1</div>
-          <h4 class="font-semibold mb-2">在线申请</h4>
-          <p class="text-gray-600 text-sm">填写基本信息，选择贷款产品</p>
-        </div>
-        <div>
-          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary text-2xl mx-auto mb-4">2</div>
-          <h4 class="font-semibold mb-2">资料审核</h4>
-          <p class="text-gray-600 text-sm">提交证明材料，银行进行审核</p>
-        </div>
-        <div>
-          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary text-2xl mx-auto mb-4">3</div>
-          <h4 class="font-semibold mb-2">审批通过</h4>
-          <p class="text-gray-600 text-sm">审核通过后，签订贷款合同</p>
-        </div>
-        <div>
-          <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary text-2xl mx-auto mb-4">4</div>
-          <h4 class="font-semibold mb-2">放款到账</h4>
-          <p class="text-gray-600 text-sm">资金最快当天到账</p>
-        </div>
-      </div>
-    </div>
+  <section id="products" class="py-10 bg-light">
+    <div class="container mx-auto px-4"><h3 class="text-2xl font-bold text-center mb-8">热门贷款产品</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-xl shadow-sm"><div class="text-3xl text-primary mb-4"><i class="fa fa-money"></i></div><h4 class="text-xl font-semibold">个人信用贷款</h4><p class="text-gray-600 mb-2">利率：最低3%</p><p class="text-gray-600 mb-4">无抵押、凭信用申请</p><button onclick="navToApply()" class="btn-primary w-full">立即申请</button></div>
+      <div class="bg-white p-6 rounded-xl shadow-sm"><div class="text-3xl text-primary mb-4"><i class="fa fa-home"></i></div><h4 class="text-xl font-semibold">房产抵押贷款</h4><p class="text-gray-600 mb-2">利率：最低2.2%</p><p class="text-gray-600 mb-4">额度高、利率低</p><button onclick="navToApply()" class="btn-primary w-full">立即申请</button></div>
+      <div class="bg-white p-6 rounded-xl shadow-sm"><div class="text-3xl text-primary mb-4"><i class="fa fa-briefcase"></i></div><h4 class="text-xl font-semibold">企业经营贷款</h4><p class="text-gray-600 mb-2">利率：最低1.9%</p><p class="text-gray-600 mb-4">助力企业发展</p><button onclick="navToApply()" class="btn-primary w-full">立即申请</button></div>
+    </div></div>
   </section>
 
   <section id="apply" class="py-16 bg-light">
-    <div class="container mx-auto px-4 max-w-2xl">
-      <div class="bg-white rounded-xl shadow-sm p-8">
-        <h3 class="text-2xl font-bold text-center mb-8">贷款申请</h3>
-        <form id="loanForm">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-gray-700 text-sm mb-2">姓名 *</label>
-              <input type="text" id="userName" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="请输入您的姓名" required>
-            </div>
-            <div>
-              <label class="block text-gray-700 text-sm mb-2">身份证号 *</label>
-              <input type="text" id="userIdCard" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="请输入您的身份证号" required>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-gray-700 text-sm mb-2">手机号码 *</label>
-              <input type="tel" id="userPhone" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="请输入您的手机号" required>
-            </div>
-            <div>
-              <label class="block text-gray-700 text-sm mb-2">贷款产品 *</label>
-              <select id="loanType" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" required>
-                <option value="">请选择贷款产品</option>
-                <option value="credit">个人信用贷款</option>
-                <option value="mortgage">房产抵押贷款</option>
-                <option value="business">企业经营贷款</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- 还款方式 + 贷款金额 -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-gray-700 text-sm mb-2">还款方式 *</label>
-              <select id="repayType" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" required>
-                <option value="">请选择</option>
-                <option value="equal">等额本息</option>
-                <option value="interest">先息后本</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-gray-700 text-sm mb-2">贷款金额（元）*</label>
-              <input type="number" id="loanMoney" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="请输入贷款金额" required>
-            </div>
-          </div>
-
-          <!-- 贷款期限 -->
-          <div class="mb-4">
-            <label class="block text-gray-700 text-sm mb-2">贷款期限（月）*</label>
-            <select id="loanMonth" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" required>
-              <option value="">请先选择还款方式</option>
-            </select>
-          </div>
-
-          <div class="mb-6">
-            <label class="block text-gray-700 text-sm mb-2">贷款用途</label>
-            <textarea id="loanUse" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20" rows="3" placeholder="请简要说明您的贷款用途"></textarea>
-          </div>
-          <div class="mb-6">
-            <label class="flex items-center gap-2 text-sm text-gray-600">
-              <input type="checkbox" class="rounded text-primary" required>
-              我已阅读并同意<a href="#" class="text-primary">《贷款服务协议》</a>和<a href="#" class="text-primary">《隐私政策》</a>
-            </label>
-          </div>
-          <button type="submit" class="btn-primary w-full">提交申请</button>
-        </form>
-      </div>
-    </div>
+    <div class="container mx-auto px-4 max-w-2xl"><div class="bg-white p-8 rounded-xl shadow-sm">
+      <h3 class="text-2xl font-bold text-center mb-6">贷款申请</h3>
+      <form id="loanForm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div><label class="block text-sm mb-2">姓名 *</label><input type="text" id="userName" class="w-full border rounded-lg px-4 py-2" required></div>
+          <div><label class="block text-sm mb-2">身份证号 *</label><input type="text" id="userIdCard" class="w-full border rounded-lg px-4 py-2" required></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div><label class="block text-sm mb-2">手机号 *</label><input type="tel" id="userPhone" class="w-full border rounded-lg px-4 py-2" required></div>
+          <div><label class="block text-sm mb-2">贷款产品 *</label><select id="loanType" class="w-full border rounded-lg px-4 py-2" required><option value="">请选择</option><option value="credit">个人信用贷款</option><option value="mortgage">房产抵押贷款</option><option value="business">企业经营贷款</option></select></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div><label class="block text-sm mb-2">还款方式 *</label><select id="repayType" class="w-full border rounded-lg px-4 py-2" required><option value="">请选择</option><option value="equal">等额本息</option><option value="interest">先息后本</option></select></div>
+          <div><label class="block text-sm mb-2">贷款金额 *</label><input type="number" id="loanMoney" class="w-full border rounded-lg px-4 py-2" required></div>
+        </div>
+        <div class="mb-4"><label class="block text-sm mb-2">贷款期限 *</label><select id="loanMonth" class="w-full border rounded-lg px-4 py-2" required></select></div>
+        <div class="mb-6"><label class="flex items-center gap-2 text-sm"><input type="checkbox" required> 我已阅读并同意协议</label></div>
+        <button type="submit" class="btn-primary w-full">提交申请</button>
+      </form>
+    </div></div>
   </section>
-
-  <section id="help" class="py-16 bg-white">
-    <div class="container mx-auto px-4 max-w-3xl">
-      <h3 class="text-2xl font-bold text-center mb-12">常见问题</h3>
-      <div class="space-y-4">
-        <div class="border rounded-lg overflow-hidden">
-          <button class="w-full text-left px-6 py-4 font-medium hover:bg-gray-50 flex justify-between items-center" onclick="toggleFaq(this)">
-            <span>贷款申请需要什么条件？</span>
-            <i class="fa fa-chevron-down text-gray-400"></i>
-          </button>
-          <div class="px-6 py-4 bg-gray-50 hidden">
-            <p class="text-gray-600 text-sm">年满18周岁，具有完全民事行为能力；有稳定的收入来源和还款能力；信用状况良好；能提供银行要求的相关证明材料。</p>
-          </div>
-        </div>
-        <div class="border rounded-lg overflow-hidden">
-          <button class="w-full text-left px-6 py-4 font-medium hover:bg-gray-50 flex justify-between items-center" onclick="toggleFaq(this)">
-            <span>贷款审批需要多长时间？</span>
-            <i class="fa fa-chevron-down text-gray-400"></i>
-          </button>
-          <div class="px-6 py-4 bg-gray-50 hidden">
-            <p class="text-gray-600 text-sm">个人信用贷款最快当天审批，房产抵押贷款和企业经营贷款一般需要3-7个工作日，具体时间以实际审核进度为准。</p>
-          </div>
-        </div>
-        <div class="border rounded-lg overflow-hidden">
-          <button class="w-full text-left px-6 py-4 font-medium hover:bg-gray-50 flex justify-between items-center" onclick="toggleFaq(this)">
-            <span>贷款可以提前还款吗？</span>
-            <i class="fa fa-chevron-down text-gray-400"></i>
-          </button>
-          <div class="px-6 py-4 bg-gray-50 hidden">
-            <p class="text-gray-600 text-sm">可以提前还款，部分产品可能会收取一定的违约金，具体以贷款合同约定为准。</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="bg-dark text-white py-8">
-    <div class="container mx-auto px-4">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        <div>
-          <h4 class="text-lg font-semibold mb-4">蜂聚签约中心</h4>
-          <p class="text-gray-400 text-sm">专业、安全、高效的线上贷款服务平台，为您提供便捷的金融服务。</p>
-        </div>
-        <div>
-          <h4 class="text-lg font-semibold mb-4">联系我们</h4>
-          <p class="text-gray-400 text-sm">客服热线：400-123-4567</p>
-          <p class="text-gray-400 text-sm">服务时间：周一至周日 9:00-18:00</p>
-        </div>
-        <div>
-          <h4 class="text-lg font-semibold mb-4">安全保障</h4>
-          <p class="text-gray-400 text-sm">全程加密保护您的信息安全，合规经营</p>
-        </div>
-      </div>
-      <div class="border-t border-gray-700 pt-4 text-center text-gray-400 text-sm">
-        © 2025 蜂聚签约中心 版权所有
-      </div>
-    </div>
-  </footer>
+  <footer class="bg-dark text-white py-6 text-center text-sm">© 2026 蜂聚签约中心</footer>
 </div>
 
-<!-- 审核通过页面 -->
+<!-- 结果页 + 还款计划 -->
 <div id="page-result" class="hidden py-10">
-  <div class="container mx-auto px-4 max-w-3xl">
-    <div class="bg-white rounded-xl shadow-sm p-6 md:p-8">
-      <div class="text-center mb-6">
-        <div class="text-success text-5xl mb-3"><i class="fa fa-check-circle"></i></div>
-        <h3 class="text-2xl font-bold text-success">贷款审核已通过</h3>
-        <p class="text-gray-500">恭喜您，额度已审批完成，即将安排放款</p>
+  <div class="container mx-auto px-4 max-w-5xl">
+    <div class="bg-white p-8 rounded-xl shadow-sm mb-6">
+      <div class="text-center mb-6"><div class="text-5xl text-success mb-3"><i class="fa fa-check-circle"></i></div><h3 class="text-2xl font-bold text-success">贷款申请详情</h3></div>
+      <div class="border rounded-lg p-5 space-y-3 mb-6">
+        <div class="flex justify-between border-b pb-2"><span>姓名</span><span id="res-name"></span></div>
+        <div class="flex justify-between border-b pb-2"><span>身份证</span><span id="res-idcard"></span></div>
+        <div class="flex justify-between border-b pb-2"><span>申请金额</span><span id="res-amount" class="text-primary font-medium"></span></div>
+        <div class="flex justify-between border-b pb-2"><span>贷款产品</span><span id="res-type"></span></div>
+        <div class="flex justify-between border-b pb-2"><span>执行年利率</span><span id="res-rate" class="text-success font-medium"></span></div>
+        <div class="flex justify-between border-b pb-2"><span>贷款期限</span><span id="res-month"></span></div>
+        <div class="flex justify-between border-b pb-2"><span>还款方式</span><span id="res-repay"></span></div>
+        <div class="flex justify-between border-b pb-2"><span>申请时间</span><span id="applyTime"></span></div>
+        <div class="font-semibold">办理状态（操作记录）</div>
+        <div id="recordList" class="text-sm space-y-1 pl-2 border-l-2 border-primary"></div>
       </div>
-      <div class="border rounded-lg p-5 mb-6 space-y-3">
-        <div class="flex justify-between border-b pb-2">
-          <span class="text-gray-600">姓名</span>
-          <span id="res-name" class="font-medium">胡*俊</span>
-        </div>
-        <div class="flex justify-between border-b pb-2">
-          <span class="text-gray-600">身份证号</span>
-          <span id="res-idcard" class="font-medium">310******4432</span>
-        </div>
-        <div class="flex justify-between border-b pb-2">
-          <span class="text-gray-600">审批额度</span>
-          <span id="res-amount" class="font-medium text-primary">0 元</span>
-        </div>
-        <div class="flex justify-between border-b pb-2">
-          <span class="text-gray-600">年利率</span>
-          <span class="font-medium">3.0%</span>
-        </div>
-        <div class="flex justify-between border-b pb-2">
-          <span class="text-gray-600">贷款期限</span>
-          <span id="res-month" class="font-medium">0 个月</span>
-        </div>
-        <div class="flex justify-between border-b pb-2">
-          <span class="text-gray-600">还款方式</span>
-          <span id="res-repay" class="font-medium">等额本息</span>
-        </div>
-      </div>
+
       <div class="mb-6">
-        <h4 class="font-semibold mb-3">还款计划表</h4>
-        <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
-          <table class="w-full border text-sm">
-            <thead class="sticky top-0 bg-gray-100">
-              <tr>
-                <th class="border px-2 py-2">期数</th>
-                <th class="border px-2 py-2">月供</th>
-                <th class="border px-2 py-2">归还本金</th>
-                <th class="border px-2 py-2">归还利息</th>
-                <th class="border px-2 py-2">剩余本金</th>
-              </tr>
-            </thead>
-            <tbody id="planTable"></tbody>
-          </table>
+        <button onclick="reApply()" class="btn-primary w-full">重新操作 / 修改申请</button>
+      </div>
+
+      <!-- 你要求的全套审批状态按钮 -->
+      <div id="adminOperate" class="mb-6">
+        <h4 class="font-semibold mb-2">流程操作（可自由选择添加状态）</h4>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="addRecord('初审通过')" class="btn-primary text-sm px-3 py-1">初审通过</button>
+          <button onclick="addRecord('暂存')" class="btn-outline text-sm px-3 py-1">暂存</button>
+          <button onclick="addRecord('风险审查-触发风控')" class="border border-warning px-3 py-1 rounded text-warning text-sm">风险审查-触发风控</button>
+          <button onclick="addRecord('转线下')" class="border border-danger px-3 py-1 rounded text-danger text-sm">转线下</button>
+          <button onclick="addRecord('复筛-待人工审批/待面签')" class="border border-primary px-3 py-1 rounded text-primary text-sm">复筛-待人工审批</button>
+          <button onclick="addRecord('贷审会审批-通过')" class="btn-primary text-sm px-3 py-1">贷审会审批-通过</button>
+          <button onclick="addRecord('放款-支取成功')" class="border border-success px-3 py-1 rounded text-success text-sm">放款-支取成功</button>
+          <button onclick="addRecord('放款-支取失败')" class="border border-danger px-3 py-1 rounded text-danger text-sm">放款-支取失败</button>
         </div>
       </div>
-      <div class="flex gap-4">
+
+      <div class="flex gap-3">
         <button onclick="backHome()" class="btn-outline flex-1">返回首页</button>
-        <button onclick="reApply()" class="btn-primary flex-1">重新申请</button>
+        <button id="delBtn" onclick="deleteLoan()" class="bg-danger text-white px-4 py-2 rounded-lg hidden flex-1">删除该申请</button>
+      </div>
+    </div>
+
+    <!-- 还款计划表 -->
+    <div class="bg-white p-6 rounded-xl shadow-sm">
+      <h3 class="text-xl font-bold mb-4">还款计划表</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full border text-sm">
+          <thead class="bg-gray-100">
+            <tr><th class="border p-2">期数</th><th class="border p-2">每期还款</th><th class="border p-2">本金</th><th class="border p-2">利息</th><th class="border p-2">剩余本金</th></tr>
+          </thead>
+          <tbody id="repayTable"></tbody>
+        </table>
       </div>
     </div>
   </div>
 </div>
 
+<!-- 管理页 -->
+<div id="loanManage" class="hidden py-10">
+  <div class="container mx-auto px-4 max-w-5xl"><div class="bg-white p-6 rounded-xl shadow-sm">
+    <h3 class="text-xl font-bold mb-4">贷款管理中心（全部申请）</h3>
+    <div class="overflow-x-auto"><table class="w-full border text-sm">
+      <thead class="bg-gray-100"><tr><th class="border p-2">申请人</th><th class="border p-2">金额</th><th class="border p-2">申请时间</th><th class="border p-2">最新状态</th><th class="border p-2">操作</th></tr></thead>
+      <tbody id="loanListTable"></tbody>
+    </table></div>
+  </div></div>
+</div>
+
 <script>
-  // 还款方式联动期限
-  const repayType = document.getElementById('repayType');
-  const loanMonth = document.getElementById('loanMonth');
+// 用户列表
+let userAccounts = JSON.parse(localStorage.getItem('userAccounts')) || [
+  {account:'胡鸿俊',pwd:'123456',role:'user',name:'胡鸿俊'},{account:'裴西宁',pwd:'123456',role:'user',name:'裴西宁'},{account:'邓丽青',pwd:'123456',role:'user',name:'邓丽青'},{account:'钱文慧',pwd:'123456',role:'user',name:'钱文慧'},{account:'郑浩',pwd:'123456',role:'user',name:'郑浩'},{account:'宋梦媛',pwd:'123456',role:'user',name:'宋梦媛'},{account:'程志豪',pwd:'123456',role:'user',name:'程志豪'},{account:'刘亚平',pwd:'123456',role:'user',name:'刘亚平'},
+  {account:'袁中流',pwd:'yuan123456',role:'admin',name:'袁中流'}
+];
+
+function saveUsers(){ localStorage.setItem('userAccounts', JSON.stringify(userAccounts)); }
+
+let loans = JSON.parse(localStorage.getItem('loans')) || [];
+let currentUser = JSON.parse(localStorage.getItem('user')) || null;
+let currentId = null;
+let editId = null;
+
+const repayType = document.getElementById('repayType');
+const loanMonth = document.getElementById('loanMonth');
+repayType.addEventListener('change',function(){
+  loanMonth.innerHTML = '<option value="">请选择</option>';
+  for(let i=1;i<=240;i++) loanMonth.innerHTML+=`<option value="${i}">${i}个月</option>`;
+});
+
+function getTime(){
+  return new Date().toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})
+}
+function get7Day(){const d=new Date();d.setDate(d.getDate()+7);return d.toLocaleString('zh-CN')}
+function mask(n){return n ? n[0]+'**' : ''}
+function maskId(id){return id ? id.slice(0,3)+'******'+id.slice(-4) : ''}
+
+function getRate(type){
+  if(type==='credit') return 3.0;
+  if(type==='mortgage') return 2.2;
+  if(type==='business') return 1.9;
+  return 3.0;
+}
+
+function calcEqual(money, month, rate) {
+  const list = [];
+  let remain = Number(money);
+  const r = rate / 100 / 12;
+  const payment = remain * r * Math.pow(1+r, month) / (Math.pow(1+r, month)-1);
+  for(let i=1;i<=month;i++){
+    const interest = remain * r;
+    const principal = payment - interest;
+    remain = remain - principal;
+    list.push({i,payment,principal,interest,remain: remain<0?0:remain});
+  }
+  return list;
+}
+
+function calcInterest(money, month, rate) {
+  const list = [];
+  let remain = Number(money);
+  const r = rate / 100 / 12;
+  const interest = money * r;
+  for(let i=1;i<month;i++){
+    list.push({i,payment:interest,principal:0,interest,remain});
+  }
+  list.push({i:month,payment:interest+remain,principal:remain,interest,remain:0});
+  return list;
+}
+
+function openAddUserModal(){
+  document.getElementById('addUserModal').classList.remove('hidden');
+  document.getElementById('addUserTip').classList.add('hidden');
+  document.getElementById('newUserName').value = '';
+}
+function closeAddUserModal(){ document.getElementById('addUserModal').classList.add('hidden'); }
+
+document.getElementById('addUserForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const name = document.getElementById('newUserName').value.trim();
+  const pwd = document.getElementById('newUserPwd').value.trim();
+  if(!name) return;
+  const exists = userAccounts.some(u=>u.account === name);
+  if(exists){ alert('该用户已存在！'); return; }
+  userAccounts.push({account:name,pwd:pwd,role:'user',name:name});
+  saveUsers();
+  document.getElementById('addUserTip').classList.remove('hidden');
+  setTimeout(closeAddUserModal,1000);
+});
+
+document.getElementById('loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const a = document.getElementById('loginAccount').value;
+  const p = document.getElementById('loginPwd').value;
+  const u = userAccounts.find(x=>x.account===a&&x.pwd===p);
+  if(!u){document.getElementById('loginError').classList.remove('hidden');return;}
+  localStorage.setItem('user',JSON.stringify(u));
+  location.reload();
+});
+
+function navToHome() {
+  document.getElementById('page-result').classList.add('hidden');
+  document.getElementById('loanManage').classList.add('hidden');
+  document.getElementById('page-home').classList.remove('hidden');
+  renderMyList();
+}
+function navToProducts() { navToHome(); document.getElementById('products').scrollIntoView({behavior:'smooth'}); }
+function navToApply() { navToHome(); document.getElementById('apply').scrollIntoView({behavior:'smooth'}); }
+function navToMyRecords() { navToHome(); document.getElementById('myRecords').scrollIntoView({behavior:'smooth'}); }
+function navToLoanManage() {
+  document.getElementById('page-home').classList.add('hidden');
+  document.getElementById('page-result').classList.add('hidden');
+  document.getElementById('loanManage').classList.remove('hidden');
+  renderAllList();
+}
+
+window.onload=function(){
+  const u=JSON.parse(localStorage.getItem('user'));
+  if(!u)return;
+  currentUser=u;
+  document.getElementById('loginModal').classList.add('hidden');
+  document.getElementById('headerMain').classList.remove('hidden');
+  document.getElementById('page-home').classList.remove('hidden');
+  document.getElementById('userInfo').innerText=`当前：${u.name}`;
+  document.getElementById('userInfo').classList.remove('hidden');
+  document.getElementById('logoutBtn').classList.remove('hidden');
   
-  repayType.addEventListener('change', function(){
-    loanMonth.innerHTML = '<option value="">请选择期限</option>';
-    if(this.value === 'equal'){
-      [12,24,36,48,60].forEach(m => {
-        loanMonth.innerHTML += `<option value="${m}">${m}个月</option>`;
-      });
-    } else if(this.value === 'interest'){
-      [12,36].forEach(m => {
-        loanMonth.innerHTML += `<option value="${m}">${m}个月</option>`;
-      });
-    }
+  if(u.account==='袁中流'){
+    document.getElementById('manageLink').classList.remove('hidden');
+    document.getElementById('addUserBtn').classList.remove('hidden');
+    document.getElementById('delBtn').classList.remove('hidden');
+  }
+  renderMyList();
+  renderAllList();
+};
+
+// 提交申请 → 自动生成：客户经理申请提交
+document.getElementById('loanForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const t=getTime();
+  const formData = {
+    name:document.getElementById('userName').value,
+    idcard:document.getElementById('userIdCard').value,
+    money:document.getElementById('loanMoney').value,
+    phone:document.getElementById('userPhone').value,
+    loanType:document.getElementById('loanType').value,
+    repayType:document.getElementById('repayType').value,
+    loanMonth:document.getElementById('loanMonth').value,
+    rate: getRate(document.getElementById('loanType').value)
+  };
+
+  if(editId){
+    let idx = loans.findIndex(x=>x.id===editId);
+    Object.assign(loans[idx], formData);
+    loans[idx].applyTime = t;
+    loans[idx].validTime = get7Day();
+    loans[idx].records.push(`客户经理申请提交（${t}）`);
+    editId = null;
+  }else{
+    const item={
+      id:Date.now(),user:currentUser.name,...formData,
+      applyTime:t,validTime:get7Day(),
+      records:[`客户经理申请提交（${t}）`]
+    };
+    loans.unshift(item);
+  }
+
+  localStorage.setItem('loans',JSON.stringify(loans));
+  document.getElementById('loanForm').reset();
+  renderMyList();
+  renderAllList();
+  showDetail(loans[0].id);
+});
+
+function reApply(){
+  const item=loans.find(x=>x.id===currentId);
+  if(!item)return;
+  editId = item.id;
+  document.getElementById('userName').value = item.name || '';
+  document.getElementById('userIdCard').value = item.idcard || '';
+  document.getElementById('userPhone').value = item.phone || '';
+  document.getElementById('loanMoney').value = item.money || '';
+  document.getElementById('loanType').value = item.loanType || '';
+  document.getElementById('repayType').value = item.repayType || '';
+  const event = new Event('change');
+  document.getElementById('repayType').dispatchEvent(event);
+  setTimeout(()=>{ if(item.loanMonth) document.getElementById('loanMonth').value = item.loanMonth; },100);
+  backHome();
+  document.getElementById('apply').scrollIntoView({behavior:'smooth'});
+}
+
+// 我的列表
+function renderMyList(){
+  const tb=document.getElementById('myLoanList');tb.innerHTML='';
+  let myLoans = loans;
+  if(currentUser && currentUser.account!=='袁中流'){
+    myLoans = loans.filter(x=>x.user===currentUser.name);
+  }
+  myLoans.forEach(item=>{
+    const last=item.records[item.records.length-1];
+    tb.innerHTML+=`<tr class="text-center"><td class="border p-2">¥${Number(item.money).toLocaleString()}</td><td class="border p-2 text-xs">${item.applyTime}</td><td class="border p-2 text-xs">${last}</td><td class="border p-2"><button onclick="showDetail(${item.id})" class="text-primary">查看</button></td></tr>`;
+  });
+}
+
+// 全部列表
+function renderAllList(){
+  const tb=document.getElementById('loanListTable');tb.innerHTML='';
+  loans.forEach(item=>{
+    const last=item.records[item.records.length-1];
+    tb.innerHTML+=`<tr class="text-center"><td class="border p-2">${item.name}</td><td class="border p-2">¥${Number(item.money).toLocaleString()}</td><td class="border p-2 text-xs">${item.applyTime}</td><td class="border p-2 text-xs">${last}</td><td class="border p-2"><button onclick="showDetail(${item.id})" class="text-primary">查看</button></td></tr>`;
+  });
+}
+
+// 显示详情
+function showDetail(id){
+  const item=loans.find(x=>x.id===id);if(!item)return;
+  currentId=id;
+  document.getElementById('res-name').innerText=mask(item.name);
+  document.getElementById('res-idcard').innerText=maskId(item.idcard);
+  document.getElementById('res-amount').innerText='¥'+Number(item.money).toLocaleString();
+  document.getElementById('res-rate').innerText=item.rate+'%';
+  document.getElementById('res-month').innerText=item.loanMonth+'个月';
+  document.getElementById('res-repay').innerText=item.repayType==='equal'?'等额本息':'先息后本';
+  document.getElementById('res-type').innerText= item.loanType==='credit'?'个人信用贷款':item.loanType==='mortgage'?'房产抵押贷款':'企业经营贷款';
+  document.getElementById('applyTime').innerText=item.applyTime;
+  
+  const rl=document.getElementById('recordList');rl.innerHTML='';
+  item.records.forEach(r=>{
+    const d=document.createElement('div');d.innerText=r;rl.appendChild(d);
   });
 
-  function scrollToApply(){
-    document.getElementById('apply').scrollIntoView({behavior:'smooth'});
-  }
-  function toggleFaq(el) {
-    const answer = el.nextElementSibling;
-    const icon = el.querySelector('i');
-    answer.classList.toggle('hidden');
-    icon.classList.toggle('fa-chevron-down');
-    icon.classList.toggle('fa-chevron-up');
-  }
-
-  // 姓名脱敏：3个字 胡*俊 格式
-  function maskName(name){
-    if(!name) return '';
-    if(name.length === 3) return name.charAt(0) + '*' + name.charAt(2);
-    if(name.length === 2) return name.charAt(0) + '*';
-    return name.charAt(0) + '**';
-  }
-  
-  function maskIdCard(id){ return id.substring(0,3) + '******' + id.substring(id.length-4); }
-
-  // 生成还款计划（全部完整显示）
-  function genPlan(repayMethod, total, month, rateYear){
-    const rateMonth = rateYear / 12 / 100;
-    let planHtml = '';
-    let remain = total;
-
-    if(repayMethod === 'equal'){
-      // 等额本息 —— 完整显示全部期数
-      const monthPay = total * rateMonth * Math.pow(1+rateMonth, month) / (Math.pow(1+rateMonth, month)-1);
-      for(let i=1; i<=month; i++){
-        const interest = remain * rateMonth;
-        const principal = monthPay - interest;
-        remain = remain - principal;
-        planHtml += `
-        <tr>
-          <td class="border px-2 py-2 text-center">第${i}期</td>
-          <td class="border px-2 py-2 text-center">${monthPay.toFixed(2)}</td>
-          <td class="border px-2 py-2 text-center">${principal.toFixed(2)}</td>
-          <td class="border px-2 py-2 text-center">${interest.toFixed(2)}</td>
-          <td class="border px-2 py-2 text-center">${remain.toFixed(2)}</td>
-        </tr>`;
-      }
-    } else if(repayMethod === 'interest'){
-      // 先息后本 —— 完整显示全部36期
-      const monthInterest = total * rateMonth;
-      for(let i=1; i<=month; i++){
-        let payAmount = monthInterest;
-        let principal = 0;
-        if(i === month){
-          payAmount = total + monthInterest;
-          principal = total;
-        }
-        const remainPrincipal = (i === month) ? 0 : total;
-        planHtml += `
-        <tr>
-          <td class="border px-2 py-2 text-center">第${i}期</td>
-          <td class="border px-2 py-2 text-center">${payAmount.toFixed(2)}</td>
-          <td class="border px-2 py-2 text-center">${principal.toFixed(2)}</td>
-          <td class="border px-2 py-2 text-center">${monthInterest.toFixed(2)}</td>
-          <td class="border px-2 py-2 text-center">${remainPrincipal.toFixed(2)}</td>
-        </tr>`;
-      }
-    }
-    document.getElementById('planTable').innerHTML = planHtml;
-  }
-
-  document.getElementById('loanForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    let name = document.getElementById('userName').value;
-    let idcard = document.getElementById('userIdCard').value;
-    let money = document.getElementById('loanMoney').value;
-    let month = document.getElementById('loanMonth').value;
-    let repayMethod = repayType.value;
-    let repayText = repayType.options[repayType.selectedIndex].text;
-
-    document.getElementById('res-name').innerText = maskName(name);
-    document.getElementById('res-idcard').innerText = maskIdCard(idcard);
-    document.getElementById('res-amount').innerText = '¥' + Number(money).toLocaleString() + ' 元';
-    document.getElementById('res-month').innerText = month + ' 个月';
-    document.getElementById('res-repay').innerText = repayText;
-
-    genPlan(repayMethod, Number(money), Number(month), 3.0);
-    document.getElementById('page-home').classList.add('hidden');
-    document.getElementById('page-result').classList.remove('hidden');
+  const table = document.getElementById('repayTable'); table.innerHTML = '';
+  let list = item.repayType==='equal' ? calcEqual(item.money, item.loanMonth, item.rate) : calcInterest(item.money, item.loanMonth, item.rate);
+  list.forEach(l=>{
+    table.innerHTML+=`<tr class="text-center"><td class="border p-1">${l.i}</td><td class="border p-1">¥${l.payment.toFixed(2)}</td><td class="border p-1">¥${l.principal.toFixed(2)}</td><td class="border p-1">¥${l.interest.toFixed(2)}</td><td class="border p-1">¥${l.remain.toFixed(2)}</td></tr>`;
   });
 
-  function backHome(){
-    document.getElementById('page-result').classList.add('hidden');
-    document.getElementById('page-home').classList.remove('hidden');
-    window.scrollTo(0,0);
+  if(currentUser&&currentUser.account==='袁中流'){
+    document.getElementById('delBtn').classList.remove('hidden');
+  }else{
+    document.getElementById('delBtn').classList.add('hidden');
   }
-  function reApply(){
-    document.getElementById('page-result').classList.add('hidden');
-    document.getElementById('page-home').classList.remove('hidden');
-    window.scrollTo(0,0);
-    scrollToApply();
-  }
+  
+  document.getElementById('page-home').classList.add('hidden');
+  document.getElementById('loanManage').classList.add('hidden');
+  document.getElementById('page-result').classList.remove('hidden');
+}
+
+// 状态记录（完全按你给的模板）
+function addRecord(status){
+  const item=loans.find(x=>x.id===currentId);if(!item)return;
+  item.records.push(`${status}（${getTime()}）`);
+  localStorage.setItem('loans',JSON.stringify(loans));
+  showDetail(currentId);
+  renderMyList();
+  renderAllList();
+}
+
+function deleteLoan(){ if(!confirm('确定删除？'))return; loans=loans.filter(x=>x.id!==currentId); localStorage.setItem('loans',JSON.stringify(loans)); backHome(); renderMyList(); renderAllList(); }
+function backHome(){ document.getElementById('page-result').classList.add('hidden'); document.getElementById('loanManage').classList.add('hidden'); document.getElementById('page-home').classList.remove('hidden'); renderMyList(); }
+function logout(){localStorage.clear();location.reload();}
 </script>
 </body>
 </html>
